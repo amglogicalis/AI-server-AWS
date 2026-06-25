@@ -5,7 +5,7 @@ import time
 import threading
 
 # --- CONFIGURACIÓN ---
-OLLAMA_URL = "http://100.57.161.250:11434/api/generate"
+OLLAMA_URL = "http://13.220.205.241:11434/api/generate"
 MODEL = "qwen2.5:7b"
 
 # --- COLORES ANSI ---

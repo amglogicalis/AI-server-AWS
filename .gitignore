@@ -2,8 +2,6 @@ gh_token.txt
 /.venv
 /.git
 /cap_testing
-awsconfigure.sh
-awsconfigure_gui.py
 docu_modos.txt
 vockey.pem
 .terraform/
@@ -22,3 +20,6 @@ __pycache__/
 venv/
 .DS_Store
 Thumbs.db
+man-server
+chat
+venv

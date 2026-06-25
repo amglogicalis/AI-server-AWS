@@ -15,20 +15,13 @@ variable "aws_ami_id" {
   description = "ID de la AMI del laboratorio"
 }
 
-# --- INTERRUPTORES DE DESPLIEGUE SIMULTÁNEO ---
-variable "deploy_ollama" {
-  type        = bool
-  description = "¿Desplegar el servidor de Ollama Local? (true/false)"
-  default     = true
+variable "aws_key_name" {
+  type        = string
+  description = "El nombre de la llave SSH (Key Pair) en AWS"
+  default     = "vockey" 
 }
 
-variable "deploy_bridge" {
-  type        = bool
-  description = "¿Desplegar el servidor API Bridge de Gemini? (true/false)"
-  default     = false
-}
-
-# --- CONFIGURACIÓN ESPECÍFICA: OLLAMA ---
+# --- CONFIGURACIÓN: OLLAMA ---
 variable "ollama_instance_type" {
   type        = string
   description = "Tipo de instancia EC2 para Ollama"
@@ -43,37 +36,6 @@ variable "ollama_volume_size" {
 
 variable "ollama_model_name" {
   type        = string
-  description = "Modelo de Ollama"
+  description = "Modelo de Ollama a descargar"
   default     = "qwen2.5:7b"
-}
-
-# --- CONFIGURACIÓN ESPECÍFICA: API BRIDGE ---
-variable "bridge_instance_type" {
-  type        = string
-  description = "Tipo de instancia EC2 para el Bridge"
-  default     = "t3.micro"
-}
-
-variable "bridge_volume_size" {
-  type        = number
-  description = "Tamaño del disco EBS para el Bridge"
-  default     = 10
-}
-
-variable "api_bridge_key" {
-  type        = string
-  description = "API Key externa"
-  sensitive   = true
-}
-
-variable "api_provider" {
-  type        = string
-  description = "Proveedor cloud de la API"
-  default     = "gemini"
-}
-
-variable "aws_key_name" {
-  type        = string
-  description = "El nombre de la llave SSH (Key Pair) en AWS"
-  default     = "vockey" # Dejamos vockey por defecto porque es el estándar del Learner Lab
 }
