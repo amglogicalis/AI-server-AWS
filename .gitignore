@@ -1,25 +1,36 @@
-gh_token.txt
-/.venv
-/.git
-/cap_testing
-docu_modos.txt
-vockey.pem
+# --- Terraform ---
 .terraform/
 *.tfstate
 *.tfstate.*
 *.tfvars
 *.tfvars.json
-vockey.pem
+tfplan
+
+# --- Credenciales y llaves ---
 *.pem
+*.pub
 *.rsa
+gh_token.txt
 .env
+
+# --- Python ---
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
 venv/
+env/
+
+# --- IDEs y Sistema ---
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
-man-server
-chat
-venv
+
+# --- Documentación temporal o pruebas ---
+/cap_testing/
+docu_modos.txt
+infoabout.md
+plan.md
+Nuevo Documento de texto.txt
+logs.txt

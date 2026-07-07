@@ -1,0 +1,53 @@
+# ============================================================
+# terraform.tfvars.example — CAP AI Server
+# Copia este archivo como terraform.tfvars y rellena los valores.
+# NUNCA subas terraform.tfvars al repositorio público.
+# ============================================================
+
+# --- OBLIGATORIO: Tu configuración de AWS ---
+aws_region   = "eu-central-1"         # Frankfurt — mejor disponibilidad de g6 Spot
+aws_profile  = "personal"              # Tu perfil en ~/.aws/credentials
+aws_key_name = "mi-keypair"            # Nombre del Key Pair SSH en tu cuenta AWS
+
+# --- OBLIGATORIO: Nombre único global del bucket S3 ---
+# Debe ser único en todo AWS. Sugerencia: cap-ai-models-TUNOMBRE-RANDOM
+s3_bucket_name = "cap-ai-models-tuusuario-abc123"
+
+# --- OBLIGATORIO: Email para alertas de coste ---
+budget_alert_email = "tu@email.com"
+
+# --- IAM ---
+# Si usas AWS Academy Learner Lab:
+#   create_iam_resources      = false
+#   iam_instance_profile_name = "LabInstanceProfile"
+# Si usas cuenta personal AWS:
+create_iam_resources      = true
+iam_instance_profile_name = "LabInstanceProfile"   # Solo se usa si create_iam_resources = false
+
+# --- Instancia Bootstrap (descarga modelos, se auto-elimina) ---
+bootstrap_instance_type = "m7i-flex.large"
+bootstrap_volume_size   = 100    # GB — debe caber UN modelo (~50 GB max)
+
+# --- Instancia GPU Spot (servidor Ollama principal) ---
+gpu_instance_type    = "g6.2xlarge"   # NVIDIA L4 24GB, $0.45/h Spot en eu-central-1
+gpu_root_volume_size = 120            # GB EBS — aloja SO + modelos (~62 GB de modelos)
+use_spot             = true           # true = Spot (75% ahorro) | false = On-Demand (garantizado)
+gpu_subnet_id        = ""             # Vacío = AWS elige la mejor AZ para Spot
+
+# --- Modelo Arquitecto: Qwen2.5-72B-Instruct Q4_K_M (~44 GB) ---
+# Rol: genera planes, arquitecturas y análisis complejos
+model_72b_hf_repo     = "bartowski/Qwen2.5-72B-Instruct-GGUF"
+model_72b_hf_filename = "Qwen2.5-72B-Instruct-Q4_K_M*.gguf"
+model_72b_s3_prefix   = "models/72b/"
+model_72b_ollama_name = "qwen-coder-72b"
+
+# --- Modelo Ejecutor: Qwen2.5-Coder-32B-Instruct Q4_K_M (~18 GB) ---
+# Rol: implementa código fase a fase, cabe 100% en VRAM L4 (~45 tok/s)
+model_32b_hf_repo     = "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF"
+model_32b_hf_filename = "Qwen2.5-Coder-32B-Instruct-Q4_K_M*.gguf"
+model_32b_s3_prefix   = "models/32b/"
+model_32b_ollama_name = "qwen-coder-32b"
+
+# --- Alertas de coste mensual ---
+budget_limit_usd          = "17.25"   # ~15 EUR
+budget_warn_threshold_pct = 67        # Aviso al 67% (~10 EUR)
