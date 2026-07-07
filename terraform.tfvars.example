@@ -1,5 +1,5 @@
 # ============================================================
-# terraform.tfvars.example — CAP AI Server
+# terraform.tfvars.example — Ollama GPU Server
 # Copia este archivo como terraform.tfvars y rellena los valores.
 # NUNCA subas terraform.tfvars al repositorio público.
 # ============================================================
@@ -10,8 +10,8 @@ aws_profile  = "personal"              # Tu perfil en ~/.aws/credentials
 aws_key_name = "mi-keypair"            # Nombre del Key Pair SSH en tu cuenta AWS
 
 # --- OBLIGATORIO: Nombre único global del bucket S3 ---
-# Debe ser único en todo AWS. Sugerencia: cap-ai-models-TUNOMBRE-RANDOM
-s3_bucket_name = "cap-ai-models-tuusuario-abc123"
+# Debe ser único en todo AWS. Sugerencia: ollama-models-TUNOMBRE-RANDOM
+s3_bucket_name = "ollama-models-tuusuario-abc123"
 
 # --- OBLIGATORIO: Email para alertas de coste ---
 budget_alert_email = "tu@email.com"

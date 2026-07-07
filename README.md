@@ -78,7 +78,7 @@ Tu tarea de código
 
 ```bash
 git clone <este-repo>
-cd CAP
+cd aws-ollama-server
 ```
 
 Configura tu perfil de AWS:
@@ -104,7 +104,7 @@ cp terraform.tfvars.example terraform.tfvars
 aws_profile        = "personal"           # tu perfil de AWS CLI
 aws_region         = "eu-central-1"       # región donde desplegar
 aws_key_name       = "mi-keypair"         # nombre de tu Key Pair en AWS
-s3_bucket_name     = "cap-ai-modelos-TUNOMBRE"  # nombre ÚNICO globalmente
+s3_bucket_name     = "ollama-modelos-TUNOMBRE"  # nombre ÚNICO globalmente
 budget_alert_email = "tu@email.com"       # email para alertas de coste
 ```
 
@@ -264,7 +264,7 @@ terraform destroy
 ## Estructura del repositorio
 
 ```
-CAP/
+aws-ollama-server/
 ├── main.tf                    # Recursos AWS: EC2, S3, IAM, Security Groups, Budgets
 ├── variables.tf               # Todas las variables parametrizadas (sin hardcodeo)
 ├── outputs.tf                 # IPs, IDs y URLs de los recursos creados

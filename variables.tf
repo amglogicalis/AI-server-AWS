@@ -1,5 +1,5 @@
 # ============================================================
-# variables.tf — CAP AI Server (Spot GPU + S3 + Wake/Sleep)
+# variables.tf — Ollama GPU Server (Spot GPU + S3 + Wake/Sleep)
 # Todas las variables están parametrizadas; nada está hardcodeado.
 # ============================================================
 
@@ -51,7 +51,7 @@ variable "create_iam_resources" {
 # ------------------------------------------------------------
 variable "s3_bucket_name" {
   type        = string
-  description = "Nombre globalmente único del bucket S3 para almacenar los modelos GGUF. Ej: 'cap-ai-models-abc123'"
+  description = "Nombre globalmente único del bucket S3 para almacenar los modelos GGUF. Ej: 'ollama-models-abc123'"
 }
 
 # ------------------------------------------------------------

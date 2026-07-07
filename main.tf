@@ -1,5 +1,5 @@
 # ============================================================
-# main.tf — CAP AI Server (Spot GPU + S3 + Wake/Sleep)
+# main.tf — Ollama GPU Server (Spot GPU + S3 + Wake/Sleep)
 #
 # Arquitectura:
 #   1. S3 Bucket  → almacén permanente de modelos GGUF (~76 GB)
@@ -75,7 +75,7 @@ locals {
   models_ready = data.external.models_status.result["ready"] == "true"
 
   common_tags = {
-    Project     = "CAP-AI-Server"
+    Project     = "ollama-gpu-server"
     ManagedBy   = "Terraform"
     Environment = "learnerlab"
   }
@@ -87,7 +87,7 @@ locals {
 # Para producción, restringir cidr_blocks a tu IP pública.
 # ------------------------------------------------------------
 resource "aws_security_group" "ai_sg" {
-  name        = "ai-server-sg-v3"
+  name        = "ollama-gpu-sg"
   description = "SSH (22) and Ollama API (11434) access"
 
   ingress {
@@ -332,7 +332,7 @@ resource "null_resource" "monitor_gpu" {
 # configurar el budget manualmente en la consola de AWS Billing.
 # ------------------------------------------------------------
 resource "aws_budgets_budget" "monthly" {
-  name         = "cap-ai-server-monthly-budget"
+  name         = "ollama-gpu-server-monthly-budget"
   budget_type  = "COST"
   limit_amount = var.budget_limit_usd
   limit_unit   = "USD"
@@ -363,7 +363,7 @@ resource "aws_budgets_budget" "monthly" {
 # ------------------------------------------------------------
 resource "aws_iam_role" "ai_role" {
   count = var.create_iam_resources ? 1 : 0
-  name  = "cap-ai-server-role-v3"
+  name  = "ollama-gpu-server-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -389,7 +389,7 @@ resource "aws_iam_role_policy_attachment" "s3_access" {
 # Permisos para que la instancia bootstrap se auto-elimine
 resource "aws_iam_role_policy" "ec2_terminate" {
   count = var.create_iam_resources ? 1 : 0
-  name  = "ec2-terminate-policy"
+  name  = "ollama-ec2-terminate-policy"
   role  = aws_iam_role.ai_role[0].id
 
   policy = jsonencode({
@@ -407,6 +407,6 @@ resource "aws_iam_role_policy" "ec2_terminate" {
 # Perfil de instancia a adjuntar a EC2
 resource "aws_iam_instance_profile" "ai_profile" {
   count = var.create_iam_resources ? 1 : 0
-  name  = "cap-ai-server-instance-profile-v3"
+  name  = "ollama-gpu-server-instance-profile"
   role  = aws_iam_role.ai_role[0].name
 }

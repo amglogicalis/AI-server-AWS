@@ -2,7 +2,7 @@
 """
 check_models_s3.py — Data source externo para Terraform.
 
-Comprueba si los modelos GGUF de la arquitectura CAP ya están
+Comprueba si los modelos GGUF del servidor Ollama ya están
 presentes en el bucket S3. Se ejecuta localmente (en la máquina
 donde corre Terraform) durante terraform plan / terraform apply.
 

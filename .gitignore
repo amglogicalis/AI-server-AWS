@@ -28,7 +28,7 @@ env/
 Thumbs.db
 
 # --- Documentación temporal o pruebas ---
-/cap_testing/
+/local_testing/
 docu_modos.txt
 infoabout.md
 plan.md

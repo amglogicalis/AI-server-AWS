@@ -1,5 +1,5 @@
 # ============================================================
-# outputs.tf — CAP AI Server (Spot GPU + S3 + Wake/Sleep)
+# outputs.tf — Ollama GPU Server (Spot GPU + S3 + Wake/Sleep)
 # ============================================================
 
 output "gpu_server_public_ip" {
