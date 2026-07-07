@@ -181,7 +181,7 @@ register_model() {
     local mf="/tmp/Modelfile_\$m_name"
     cat > "\$mf" <<MEOF
 FROM \$gguf_file
-PARAMETER num_ctx 4096
+PARAMETER num_ctx 16384
 MEOF
 
     # Iniciar Ollama temporalmente para poder registrar el modelo
