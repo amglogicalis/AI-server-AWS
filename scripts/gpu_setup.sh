@@ -177,10 +177,56 @@ register_model() {
         return 1
     fi
 
-    echo "--> Registrando \$m_name en Ollama desde \$gguf_file..."
     local mf="/tmp/Modelfile_\$m_name"
     cat > "\$mf" <<MEOF
 FROM \$gguf_file
+TEMPLATE """{{- if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{- else if .Tools }}<|im_start|>system
+# Tools
+
+You may call one or more functions to assist with the user request.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{{- range .Tools }}
+{"type": "function", "function": {{ .Function }}}
+{{- end }}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": "func_name", "arguments": {"argument_name": "argument_value"}}
+</tool_call>
+
+Here are the available tools:
+{{- range .Tools }}
+* Name: {{ .Function.Name }}
+  Description: {{ .Function.Description }}
+  Parameters: {{ .Function.Parameters }}
+{{- end }}<|im_end|>
+{{- end }}
+{{- range .Messages }}
+{{- if eq .Role "user" }}<|im_start|>user
+{{ .Content }}<|im_end|>
+{{- else if eq .Role "assistant" }}<|im_start|>assistant
+{{- if .Content }}
+{{ .Content }}
+{{- end }}
+{{- if .ToolCalls }}<|im_start|>call
+{{- range .ToolCalls }}
+{"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}
+{{- end }}<|im_end|>
+{{- end }}<|im_end|>
+{{- else if eq .Role "tool" }}<|im_start|>user
+<tool_response>
+{{ .Content }}
+</tool_response><|im_end|>
+{{- end }}
+{{- end }}<|im_start|>assistant
+"""
+PARAMETER stop <|im_start|>
+PARAMETER stop <|im_end|>
 PARAMETER num_ctx 16384
 MEOF
 
