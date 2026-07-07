@@ -260,8 +260,8 @@ resource "aws_instance" "gpu_server" {
     content {
       market_type = "spot"
       spot_options {
-        instance_interruption_behavior = "terminate"
-        spot_instance_type             = "one-time"
+        instance_interruption_behavior = "stop"
+        spot_instance_type             = "persistent"
       }
     }
   }

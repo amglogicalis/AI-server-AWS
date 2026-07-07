@@ -1,4 +1,4 @@
-# 🤖 CAP — Codex Alternativo Personal en AWS
+# Codex Alternativo Personal en AWS
 
 > **Tu propio Codex/Claude Code en casa por $0.45/hora** usando GPU Spot de AWS, Terraform y Ollama.  
 > El servidor solo corre cuando lo necesitas. Los modelos persisten en S3. Perfecto para workflows agenticos con [OpenCode](https://opencode.ai).
