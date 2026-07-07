@@ -185,7 +185,7 @@ TEMPLATE """{{- if .System }}<|im_start|>system
 {{- else if .Tools }}<|im_start|>system
 # Tools
 
-You may call one or more functions to assist with the user request.
+You may call one or more functions to assist with the user query.
 
 You are provided with function signatures within <tools></tools> XML tags:
 <tools>
@@ -196,15 +196,8 @@ You are provided with function signatures within <tools></tools> XML tags:
 
 For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
 <tool_call>
-{"name": "func_name", "arguments": {"argument_name": "argument_value"}}
-</tool_call>
-
-Here are the available tools:
-{{- range .Tools }}
-* Name: {{ .Function.Name }}
-  Description: {{ .Function.Description }}
-  Parameters: {{ .Function.Parameters }}
-{{- end }}<|im_end|>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call><|im_end|>
 {{- end }}
 {{- range .Messages }}
 {{- if eq .Role "user" }}<|im_start|>user
