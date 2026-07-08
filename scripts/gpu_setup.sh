@@ -211,6 +211,34 @@ systemctl enable ollama-nvme-restore.service
 echo "==> Ejecutando primera sincronizacion de modelos..."
 systemctl start ollama-nvme-restore.service
 
+# ============================================================
+# PASO 6: Configurar auto-apagado de emergencia por inactividad (+8 horas)
+# ============================================================
+echo ""
+echo "==> [6/6] Configurando script y cron de auto-apagado de emergencia..."
+
+cat << 'EOF' > /usr/local/bin/auto-shutdown-check.sh
+#!/bin/bash
+# auto-shutdown-check.sh — Apaga la máquina si lleva más de 8 horas encendida.
+UPTIME_SECONDS=$(cat /proc/uptime | awk '{print int($1)}')
+LIMIT_SECONDS=28800 # 8 horas
+
+if [ "$UPTIME_SECONDS" -gt "$LIMIT_SECONDS" ]; then
+    echo "$(date): El servidor lleva encendido $UPTIME_SECONDS segundos (> 8 horas). Apagando de emergencia..." >> /var/log/auto-shutdown.log
+    /sbin/shutdown -h now
+fi
+EOF
+
+chmod +x /usr/local/bin/auto-shutdown-check.sh
+
+# Configurar cron job para ejecutarse cada 15 minutos
+cat << 'EOF' > /etc/cron.d/auto-shutdown
+# Comprobar tiempo de actividad cada 15 minutos y apagar si supera las 8 horas
+*/15 * * * * root /bin/bash /usr/local/bin/auto-shutdown-check.sh >/dev/null 2>&1
+EOF
+
+echo "==> Auto-apagado de emergencia configurado."
+
 echo "======================================================"
 echo " GPU SETUP CONFIGURADO CON ÉXITO"
 echo " GPU SETUP COMPLETADO"
