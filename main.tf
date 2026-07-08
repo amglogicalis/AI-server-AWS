@@ -27,28 +27,6 @@ provider "aws" {
 
 # ------------------------------------------------------------
 # DATA SOURCE EXTERNO: Verificar si los modelos ya están en S3
-#
-# Ejecuta scripts/check_models_s3.py localmente (donde corre
-# Terraform) usando el AWS CLI con el perfil configurado.
-# Devuelve {"ready": "true"} si ambos prefijos tienen objetos.
-# Si el bucket no existe o hay error de auth, devuelve "false".
-#
-# Comportamiento en despliegues posteriores:
-#   - Modelos presentes en S3 → models_ready=true → bootstrap count=0
-#   - Modelos ausentes         → models_ready=false → bootstrap count=1
-# ------------------------------------------------------------
-data "external" "models_status" {
-  program = ["python", "${path.module}/scripts/check_models_s3.py"]
-
-  query = {
-    bucket      = var.s3_bucket_name
-    prefix_72b  = var.model_72b_s3_prefix
-    prefix_32b  = var.model_32b_s3_prefix
-    aws_profile = var.aws_profile
-    aws_region  = "eu-west-1"
-  }
-}
-
 # ------------------------------------------------------------
 # DATA SOURCE: AMI de Ubuntu 22.04 LTS (Canonical)
 # Busca dinámicamente la última AMI oficial según la región.
@@ -72,8 +50,6 @@ data "aws_ami" "ubuntu" {
 # LOCALS
 # ------------------------------------------------------------
 locals {
-  models_ready = data.external.models_status.result["ready"] == "true"
-
   common_tags = {
     Project     = "ollama-gpu-server"
     ManagedBy   = "Terraform"
@@ -158,77 +134,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "models" {
 }
 
 # ------------------------------------------------------------
-# INSTANCIA BOOTSTRAP: Descarga modelos HF → Sube a S3 → Muere
-#
-# count = 0 si los modelos ya están en S3 (no se crea ni gasta).
-# count = 1 en el primer despliegue o si los modelos faltan.
-#
-# User data: scripts/bootstrap_setup.sh (inyectado por templatefile)
-# La instancia se autoeliminla al finalizar usando IMDSv2 +
-# aws ec2 terminate-instances. Requiere el LabRole de AWS Academy.
-# ------------------------------------------------------------
-resource "aws_instance" "bootstrap" {
-  count = local.models_ready ? 0 : 1
-
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.bootstrap_instance_type
-  key_name               = var.aws_key_name
-  vpc_security_group_ids      = [aws_security_group.ai_sg.id]
-  iam_instance_profile        = var.create_iam_resources ? aws_iam_instance_profile.ai_profile[0].name : var.iam_instance_profile_name
-  user_data_replace_on_change = true
-
-  root_block_device {
-    volume_size           = var.bootstrap_volume_size
-    volume_type           = "gp3"
-    delete_on_termination = true
-  }
-
-  user_data = <<-USERDATA
-#!/bin/bash
-# --- Variables inyectadas por Terraform (valores de tfvars) ---
-export TF_S3_BUCKET="${var.s3_bucket_name}"
-export TF_AWS_REGION="eu-west-1"
-export TF_MODEL_72B_HF_REPO="${var.model_72b_hf_repo}"
-export TF_MODEL_72B_HF_FILENAME="${var.model_72b_hf_filename}"
-export TF_MODEL_72B_S3_PREFIX="${var.model_72b_s3_prefix}"
-export TF_MODEL_32B_HF_REPO="${var.model_32b_hf_repo}"
-export TF_MODEL_32B_HF_FILENAME="${var.model_32b_hf_filename}"
-export TF_MODEL_32B_S3_PREFIX="${var.model_32b_s3_prefix}"
-# --- Ejecutar el script principal ---
-${file("${path.module}/scripts/bootstrap_setup.sh")}
-USERDATA
-
-  tags = merge(local.common_tags, {
-    Name          = "ai-bootstrap-uploader"
-    Purpose       = "one-time-model-upload"
-    AutoTerminate = "true"
-  })
-
-  # El bucket debe existir antes de que la instancia intente subir los modelos
-  depends_on = [
-    aws_s3_bucket.models,
-    aws_s3_bucket_public_access_block.models,
-  ]
-}
-
-# ------------------------------------------------------------
-# ESPERA Y MONITOREO DE BOOTSTRAP (SUBIDA A S3)
-# Se ejecuta si los modelos no están listos en S3.
-# Fuerza a que el servidor GPU espere a que termine el bootstrap.
-# ------------------------------------------------------------
-resource "null_resource" "wait_for_bootstrap" {
-  count = local.models_ready ? 0 : 1
-
-  triggers = {
-    bootstrap_instance_id = aws_instance.bootstrap[0].id
-  }
-
-  provisioner "local-exec" {
-    command = "bash '${path.module}/check_bootstrap_status.sh' '${aws_instance.bootstrap[0].public_ip}' '${var.aws_key_name}'"
-  }
-}
-
-# ------------------------------------------------------------
 # INSTANCIA GPU SPOT: Servidor Ollama principal
 #
 # g6e.xlarge:
@@ -292,10 +197,6 @@ USERDATA
     Mode   = "spot-gpu-l40s"
     Models = "${var.model_72b_ollama_name},${var.model_32b_ollama_name}"
   })
-
-  depends_on = [
-    null_resource.wait_for_bootstrap
-  ]
 }
 
 # ------------------------------------------------------------

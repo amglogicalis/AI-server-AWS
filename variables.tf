@@ -55,24 +55,6 @@ variable "s3_bucket_name" {
 }
 
 # ------------------------------------------------------------
-# INSTANCIA BOOTSTRAP
-# Instancia t3.medium que descarga los modelos de HuggingFace
-# y los sube al bucket S3. Se auto-elimina al terminar.
-# Solo se despliega si los modelos NO están ya en S3.
-# ------------------------------------------------------------
-variable "bootstrap_instance_type" {
-  type        = string
-  description = "Tipo de instancia EC2 para la tarea de descarga/subida de modelos (solo CPU, no necesita GPU)"
-  default     = "t3.medium"
-}
-
-variable "bootstrap_volume_size" {
-  type        = number
-  description = "Tamaño del disco EBS gp3 en GB para la instancia bootstrap. Debe ser >= tamaño de UN modelo a la vez (~50 GB)."
-  default     = 100
-}
-
-# ------------------------------------------------------------
 # INSTANCIA GPU SPOT — SERVIDOR OLLAMA PRINCIPAL
 # g6e.xlarge: NVIDIA L40S 48 GB VRAM, 4 vCPU, 32 GB RAM
 #             + 250 GB NVMe SSD de instancia store (efímero)
@@ -93,22 +75,8 @@ variable "gpu_root_volume_size" {
 }
 
 # ------------------------------------------------------------
-# MODELO 72B — Qwen2.5-Coder-72B-Instruct Q4_K_M
-# Cuantización de 4 bits, balance calidad/velocidad para 72B.
-# Tamaño aproximado: ~42 GB (puede estar dividido en shards).
+# MODELO 72B — Qwen2.5-72B-Instruct
 # ------------------------------------------------------------
-variable "model_72b_hf_repo" {
-  type        = string
-  description = "Repositorio de HuggingFace del modelo de 72B"
-  default     = "bartowski/Qwen2.5-72B-Instruct-GGUF"
-}
-
-variable "model_72b_hf_filename" {
-  type        = string
-  description = "Patrón glob para seleccionar los archivos GGUF del modelo 72B (soporta * para shards)"
-  default     = "Qwen2.5-72B-Instruct-Q4_K_M*.gguf"
-}
-
 variable "model_72b_s3_prefix" {
   type        = string
   description = "Prefijo (carpeta) dentro del bucket S3 para los archivos del modelo 72B"
@@ -118,28 +86,12 @@ variable "model_72b_s3_prefix" {
 variable "model_72b_ollama_name" {
   type        = string
   description = "Nombre con el que el modelo de 72B se registrará en Ollama"
-  default     = "qwen-coder-72b"
+  default     = "qwen2.5:72b"
 }
 
 # ------------------------------------------------------------
-# MODELO 32B — Qwen2.5-Coder-32B-Instruct Q4_K_M
-# Cuantización de 4 bits: ~18 GB, cabe 100% en VRAM de la L4.
-# Velocidad: ~45 tok/s. Calidad en benchmarks de código: ~90%
-# vs ~92% del Q8_0. Diferencia imperceptible en la práctica.
-# Perfecto como ejecutor en workflows agenticos (OpenCode, Aider).
+# MODELO 32B — Qwen2.5-Coder-32B-Instruct
 # ------------------------------------------------------------
-variable "model_32b_hf_repo" {
-  type        = string
-  description = "Repositorio de HuggingFace del modelo de 32B"
-  default     = "bartowski/Qwen2.5-Coder-32B-Instruct-GGUF"
-}
-
-variable "model_32b_hf_filename" {
-  type        = string
-  description = "Patrón glob para seleccionar los archivos GGUF del modelo 32B (soporta * para shards)"
-  default     = "Qwen2.5-Coder-32B-Instruct-Q4_K_M*.gguf"
-}
-
 variable "model_32b_s3_prefix" {
   type        = string
   description = "Prefijo (carpeta) dentro del bucket S3 para los archivos del modelo 32B"
@@ -149,7 +101,7 @@ variable "model_32b_s3_prefix" {
 variable "model_32b_ollama_name" {
   type        = string
   description = "Nombre con el que el modelo de 32B se registrará en Ollama"
-  default     = "qwen-coder-32b"
+  default     = "qwen2.5-coder:32b"
 }
 
 # ------------------------------------------------------------
