@@ -150,6 +150,27 @@ systemctl stop ollama
 echo "--> Sincronizando librería de Ollama desde S3..."
 aws s3 sync "s3://\$S3_BUCKET/ollama/" "\$OLLAMA_MODELS_DIR/" --region "\$AWS_REGION"
 
+# Si la carpeta de manifiestos está vacía, es una instalación inicial o se limpió S3
+if [ ! -d "\$OLLAMA_MODELS_DIR/models/manifests" ] || [ -z "\$(ls -A \$OLLAMA_MODELS_DIR/models/manifests 2>/dev/null)" ]; then
+    echo "--> S3 está vacío. Iniciando descarga directa de los modelos oficiales..."
+    systemctl start ollama
+    # Esperar a que Ollama responda
+    for i in \$(seq 1 15); do
+        if curl -s http://localhost:11434/ >/dev/null; then break; fi
+        sleep 2
+    done
+    
+    echo "--> Descargando qwen2.5-coder:32b..."
+    OLLAMA_MODELS="\$OLLAMA_MODELS_DIR" ollama pull qwen2.5-coder:32b
+    
+    echo "--> Descargando qwen2.5:72b..."
+    OLLAMA_MODELS="\$OLLAMA_MODELS_DIR" ollama pull qwen2.5:72b
+    
+    echo "--> Subiendo copia inicial a S3..."
+    aws s3 sync "\$OLLAMA_MODELS_DIR/" "s3://\$S3_BUCKET/ollama/" --region "\$AWS_REGION"
+    systemctl stop ollama
+fi
+
 # Asegurar permisos correctos para el usuario de ollama
 chown -R ollama:ollama "\$OLLAMA_MODELS_DIR"
 
@@ -158,7 +179,6 @@ echo "--> Iniciando servicio Ollama..."
 systemctl start ollama
 
 echo "=== [RESTORE END] \$(date) ==="
-EOF
 EOF
 
 chmod +x /usr/local/bin/ollama-nvme-restore.sh
