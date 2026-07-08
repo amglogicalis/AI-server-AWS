@@ -1,7 +1,7 @@
 # Codex Alternativo Personal en AWS
 
 > **Tu propio Codex/Claude Code en casa por $0.45/hora** usando GPU Spot de AWS, Terraform y Ollama.  
-> El servidor solo corre cuando lo necesitas. Los modelos persisten en S3. Perfecto para workflows agenticos con [OpenCode](https://opencode.ai).
+> El servidor solo corre cuando lo necesitas. Los modelos persisten en S3. Perfecto para workflows agenticos con [Aider](https://aider.chat).
 
 ---
 
@@ -58,9 +58,9 @@ Tu tarea de código
 | Herramienta | Versión mínima | Para qué |
 |---|---|---|
 | [Terraform](https://developer.hashicorp.com/terraform/install) | >= 1.5 | Desplegar la infra |
-| [AWS CLI](https://aws.amazon.com/cli/) | >= 2.0 | Autenticación |
-| Python | >= 3.9 | Scripts de mantenimiento |
-| [OpenCode](https://opencode.ai) | última | Cliente agentico de IA |
+| [AWS CLI](https://aws.amazon.com/cli/) | >= 2.0 | Para qué |
+| Python | >= 3.12 | Entorno de ejecución y Aider |
+| [Aider](https://aider.chat) | última | Cliente de IA para coding |
 
 ### Cuenta AWS necesaria
 
@@ -155,66 +155,38 @@ Deberías ver los dos modelos: `qwen-coder-32b` y `qwen-coder-72b`.
 
 ---
 
-## Uso con OpenCode (workflow recomendado)
+## Uso con Aider (workflow recomendado)
 
-[OpenCode](https://opencode.ai) es un cliente agentico de código que corre en terminal y soporta modelos locales via Ollama.
+[Aider](https://aider.chat) es un cliente de código para la terminal líder que se conecta de forma nativa a Ollama y permite crear o modificar archivos en tu repositorio git de forma robusta e interactiva.
 
-### Instalación de OpenCode
+### Configurar e iniciar Aider con tu servidor
+
+En la terminal de tu PC (dentro del repositorio que quieras editar), configura las variables de entorno para apuntar a la IP del servidor de AWS y arranca Aider:
+
+**En Windows (PowerShell):**
+```powershell
+$env:OPENAI_API_BASE="http://<TU_IP_DE_AWS>:11434/v1"
+$env:OPENAI_API_KEY="ollama"
+python -m aider --model ollama/qwen2.5-coder:32b
+```
+
+**En Linux/macOS:**
+```bash
+export OPENAI_API_BASE="http://<TU_IP_DE_AWS>:11434/v1"
+export OPENAI_API_KEY="ollama"
+aider --model ollama/qwen2.5-coder:32b
+```
+
+---
+
+## Workflow Arquitecto + Ejecutor (Futuro)
+
+Cuando tengamos habilitado el modelo de 72B en el servidor, podrás usar el modo arquitecto y editor nativo de Aider:
 
 ```bash
-npm install -g opencode-ai
-# o con bun:
-bun install -g opencode-ai
+aider --model ollama/qwen2.5-coder:72b --editor-model ollama/qwen2.5-coder:32b
 ```
 
-### Configurar OpenCode con tu servidor
-
-Crea o edita `~/.config/opencode/config.json`:
-
-```json
-{
-  "providers": {
-    "mi-servidor-ia": {
-      "type": "ollama",
-      "url": "http://<TU_IP>:11434"
-    }
-  },
-  "model": "mi-servidor-ia/qwen-coder-32b"
-}
-```
-
-O directamente en `.opencode.json` en la raíz de tu proyecto:
-
-```json
-{
-  "model": "ollama/qwen-coder-32b",
-  "ollama": {
-    "host": "http://<TU_IP>:11434"
-  }
-}
-```
-
-### Workflow arquitecto + ejecutor
-
-```bash
-# FASE 1: Generar el plan de arquitectura con el 72B
-opencode --model ollama/qwen-coder-72b \
-  "Eres un arquitecto de software. Analiza este proyecto y genera un plan detallado en Markdown con fases de implementación, interfaces, y consideraciones técnicas."
-
-# El plan se guarda en PLAN.md
-
-# FASE 2: Ejecutar el plan fase a fase con el 32B
-opencode --model ollama/qwen-coder-32b \
-  "Implementa la Fase 1 del plan en PLAN.md. Escribe el código completo, los tests, y actualiza la documentación."
-```
-
-### Variables de entorno alternativa
-
-```bash
-export OPENCODE_MODEL="ollama/qwen-coder-32b"
-export OLLAMA_HOST="http://<TU_IP>:11434"
-opencode
-```
 
 ---
 
